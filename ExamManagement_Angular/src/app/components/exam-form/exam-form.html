@@ -1,0 +1,116 @@
+<div class="card p-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h5 class="mb-0">Record Exam Result</h5>
+<a routerLink="/list" class="btn btn-sm btn-outline-primary">View Saved Exams</a>
+</div>
+<form [formGroup]="form" (ngSubmit)="save()">
+<div class="mb-2 position-relative student-autocomplete-container">
+<div class="d-flex justify-content-between align-items-center mb-1">
+<label class="form-label mb-0">Student <span class="text-danger">*</span></label>
+<button type="button" class="btn btn-sm btn-outline-primary" (click)="openAddStudentModal()">+ Add New Student</button>
+</div>
+<input type="text" class="form-control" formControlName="studentName" (input)="onStudentInput($any($event.target).value)" (focus)="onStudentFocus()" (click)="onStudentFocus()" autocomplete="off" [class.is-invalid]="form.get('studentID')?.invalid && form.get('studentID')?.touched" placeholder="Type to search or click to see all students" />
+<div *ngIf="form.get('studentID')?.invalid && form.get('studentID')?.touched" class="invalid-feedback">
+Please select a student from the list
+</div>
+<div *ngIf="form.get('studentID')?.value" class="mt-1">
+<small class="text-muted">Student ID: <strong>{{ form.get('studentID')?.value }}</strong></small>
+</div>
+<div *ngIf="filteredStudents.length > 0" class="list-group position-absolute" style="z-index:1000; max-height:200px; overflow:auto; width:100%; border: 1px solid #dee2e6; border-radius: 0.375rem;">
+<button type="button" class="list-group-item list-group-item-action" *ngFor="let s of filteredStudents" (click)="selectStudent(s)">{{ s.studentName }} ({{ s.mail }}) - ID: {{ s.studentID }}</button>
+</div>
+</div>
+
+
+<div class="mb-2">
+<label class="form-label">Exam Year <span class="text-danger">*</span></label>
+<input type="number" class="form-control" formControlName="examYear" [class.is-invalid]="form.get('examYear')?.invalid && form.get('examYear')?.touched" />
+<div *ngIf="form.get('examYear')?.invalid && form.get('examYear')?.touched" class="invalid-feedback">
+Exam year must be between 2000 and 2100
+</div>
+</div>
+
+
+<div class="mb-2">
+<label>Subjects & Marks</label>
+<table class="table table-sm">
+<thead>
+<tr><th>Subject</th><th>Marks</th><th></th></tr>
+</thead>
+<tbody formArrayName="details">
+<tr *ngFor="let row of details.controls; let i = index" [formGroupName]="i">
+<td class="position-relative">
+<input type="text" class="form-control" formControlName="subjectName" (input)="onSubjectInput($any($event.target).value, i)" autocomplete="off" />
+<div *ngIf="filteredSubjects.length && activeSubjectRowIndex === i" class="list-group position-absolute" style="z-index:1000; max-height:200px; overflow:auto; width:100%">
+<button type="button" class="list-group-item list-group-item-action" *ngFor="let s of filteredSubjects" (click)="selectSubject(s, i)">{{ s.subjectName }}</button>
+</div>
+</td>
+<td>
+<input type="number" class="form-control" formControlName="marks" min="0" max="100" step="0.01" [class.is-invalid]="details.at(i).get('marks')?.invalid && details.at(i).get('marks')?.touched" />
+<div *ngIf="details.at(i).get('marks')?.invalid && details.at(i).get('marks')?.touched" class="invalid-feedback">
+Marks must be between 0 and 100
+</div>
+</td>
+<td>
+<button type="button" class="btn btn-sm btn-outline-danger" (click)="removeDetailRow(i)" [disabled]="details.length===1">Remove</button>
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<div class="mb-2">
+<button type="button" class="btn btn-sm btn-primary" (click)="addSubjectToTable()">Add Subject</button>
+</div>
+
+
+<div class="d-flex justify-content-between mt-2">
+<div><strong>Total:</strong> {{ totalMark }}</div>
+<div><strong>Status:</strong> {{ passOrFail }}</div>
+</div>
+</div>
+
+<div *ngIf="form.get('studentID')?.value && form.get('examYear')?.value" class="alert alert-info mt-3">
+<h6 class="mb-2">Summary (will be saved):</h6>
+<ul class="mb-0">
+<li><strong>Student ID:</strong> {{ form.get('studentID')?.value }}</li>
+<li><strong>Student Name:</strong> {{ form.get('studentName')?.value }}</li>
+<li><strong>Exam Year:</strong> {{ form.get('examYear')?.value }}</li>
+<li><strong>Unique Combination:</strong> StudentID ({{ form.get('studentID')?.value }}) + ExamYear ({{ form.get('examYear')?.value }}) must be unique</li>
+<li><strong>Total Marks:</strong> {{ totalMark }}</li>
+<li><strong>Status:</strong> {{ passOrFail }}</li>
+</ul>
+</div>
+
+
+<div class="mt-3">
+<button class="btn btn-success" type="submit">Save</button>
+</div>
+</form>
+
+<!-- Add Student Modal -->
+<div *ngIf="showAddStudentModal" class="modal-overlay" (click)="closeAddStudentModal()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;">
+<div class="card" style="width: 500px; max-width: 90%; z-index: 2001;" (click)="$event.stopPropagation()">
+<div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+<h5 class="mb-0">Add New Student</h5>
+<button type="button" class="btn btn-sm" (click)="closeAddStudentModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+</div>
+<div class="card-body">
+<div class="mb-2">
+<label class="form-label">Student Name <span class="text-danger">*</span></label>
+<input type="text" class="form-control" [(ngModel)]="newStudent.studentName" placeholder="Enter student name (min 5 characters)" />
+<small class="text-muted">Minimum 5 characters, maximum 250 characters</small>
+</div>
+<div class="mb-2">
+<label class="form-label">Email <span class="text-danger">*</span></label>
+<input type="email" class="form-control" [(ngModel)]="newStudent.mail" placeholder="Enter email address" />
+<small class="text-muted">Email must be unique</small>
+</div>
+<div class="d-flex justify-content-end gap-2" style="gap: 0.5rem;">
+<button type="button" class="btn btn-secondary" (click)="closeAddStudentModal()">Cancel</button>
+<button type="button" class="btn btn-primary" (click)="addNewStudent()">Add Student</button>
+</div>
+</div>
+</div>
+</div>
+</div>

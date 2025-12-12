@@ -1,0 +1,62 @@
+<div class="card p-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h5 class="mb-0">Saved Exam Records</h5>
+<a routerLink="/" class="btn btn-sm btn-primary">Add New Exam</a>
+</div>
+<div *ngIf="exams.length === 0" class="alert alert-info">No exam records found.</div>
+<table *ngIf="exams.length > 0" class="table table-sm table-striped">
+<thead>
+<tr>
+<th>Student Name</th>
+<th>Email</th>
+<th>Exam Year</th>
+<th>Total Marks</th>
+<th>Status</th>
+<th>Created Date</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<ng-container *ngFor="let e of exams">
+<tr>
+<td>{{ e.student?.studentName || 'N/A' }}</td>
+<td>{{ e.student?.mail || 'N/A' }}</td>
+<td>{{ e.examYear }}</td>
+<td>{{ e.totalMark | number:'1.2-2' }}</td>
+<td>
+<span [class]="e.passOrFail === 'PASS' ? 'badge bg-success' : 'badge bg-danger'">
+{{ e.passOrFail }}
+</span>
+</td>
+<td>{{ e.createTime | date:'short' }}</td>
+<td>
+<button class="btn btn-sm btn-info" (click)="toggleDetails(e.masterID!)" *ngIf="e.masterID">
+{{ getDetailsVisible(e.masterID!) ? 'Hide' : 'Show' }} Details
+</button>
+</td>
+</tr>
+<tr *ngIf="getDetailsVisible(e.masterID!) && e.details && e.details.length > 0">
+<td colspan="7">
+<div class="ms-4">
+<h6>Subject Details:</h6>
+<table class="table table-sm table-bordered">
+<thead>
+<tr>
+<th>Subject</th>
+<th>Marks</th>
+</tr>
+</thead>
+<tbody>
+<tr *ngFor="let detail of e.details">
+<td>{{ detail.subject?.subjectName || 'N/A' }}</td>
+<td>{{ detail.marks | number:'1.2-2' }}</td>
+</tr>
+</tbody>
+</table>
+</div>
+</td>
+</tr>
+</ng-container>
+</tbody>
+</table>
+</div>
