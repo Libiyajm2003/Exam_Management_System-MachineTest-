@@ -1,9 +1,7 @@
 
 CREATE DATABASE ExamManagementDb;
-GO
 
 USE ExamManagementDb;
-GO
 
 -- SubjectMst
 CREATE TABLE SubjectMst
@@ -11,7 +9,6 @@ CREATE TABLE SubjectMst
     SubjectID   INT IDENTITY(1,1) PRIMARY KEY,
     SubjectName NVARCHAR(200) NOT NULL
 );
-GO
 
 -- StudentMst
 CREATE TABLE StudentMst
@@ -20,7 +17,6 @@ CREATE TABLE StudentMst
     StudentName NVARCHAR(250) NOT NULL CHECK (LEN(StudentName) >= 5),
     Mail        NVARCHAR(250) NOT NULL UNIQUE
 );
-GO
 
 -- ExamMaster
 CREATE TABLE ExamMaster
@@ -37,7 +33,6 @@ CREATE TABLE ExamMaster
 
     CONSTRAINT UQ_ExamMaster_StudentYear UNIQUE (StudentID, ExamYear)
 );
-GO
 
 -- ExamDtls
 CREATE TABLE ExamDtls
@@ -53,28 +48,16 @@ CREATE TABLE ExamDtls
     CONSTRAINT FK_ExamDtls_Subject FOREIGN KEY (SubjectID)
         REFERENCES SubjectMst(SubjectID)
 );
-GO
 
-
-----------------------------------------------------------------------
--- Seed Data
-----------------------------------------------------------------------
 
 INSERT INTO StudentMst (StudentName, Mail)
 VALUES ('Libiya', 'Libiya@gmail.com'),
        ('Gladis', 'Gladis@gmail.com');
-GO
 
 INSERT INTO SubjectMst (SubjectName)
 VALUES ('Computer'),
        ('Science'),
        ('English');
-GO
-
-
-----------------------------------------------------------------------
--- Stored Procedures
-----------------------------------------------------------------------
 
 -- Students_GetAll
 CREATE OR ALTER PROCEDURE Students_GetAll
@@ -86,7 +69,6 @@ BEGIN
     FROM StudentMst
     ORDER BY StudentName;
 END;
-GO
 
 -- Subjects_GetAll
 CREATE OR ALTER PROCEDURE Subjects_GetAll
@@ -98,7 +80,6 @@ BEGIN
     FROM SubjectMst
     ORDER BY SubjectName;
 END;
-GO
 
 -- Student_GetById
 CREATE OR ALTER PROCEDURE Student_GetById
@@ -111,7 +92,6 @@ BEGIN
     FROM StudentMst
     WHERE StudentID = @StudentID;
 END;
-GO
 
 -- Student_Insert
 CREATE OR ALTER PROCEDURE Student_Insert
@@ -134,7 +114,6 @@ BEGIN
 
     SET @NewStudentID = SCOPE_IDENTITY();
 END;
-GO
 
 -- Exam_CheckExists
 CREATE OR ALTER PROCEDURE Exam_CheckExists
@@ -149,7 +128,6 @@ BEGIN
     WHERE StudentID = @StudentID
       AND ExamYear = @ExamYear;
 END;
-GO
 
 -- Exam_Insert (creates master only, TotalMark & PassOrFail computed later)
 CREATE OR ALTER PROCEDURE Exam_Insert
@@ -165,7 +143,6 @@ BEGIN
 
     SET @NewMasterID = SCOPE_IDENTITY();
 END;
-GO
 
 -- ExamDetail_Insert
 CREATE OR ALTER PROCEDURE ExamDetail_Insert
@@ -179,7 +156,6 @@ BEGIN
     INSERT INTO ExamDtls (MasterID, SubjectID, Marks)
     VALUES (@MasterID, @SubjectID, @Marks);
 END;
-GO
 
 -- FinalizeExamResult (computes TotalMark and PassOrFail)
 CREATE OR ALTER PROCEDURE FinalizeExamResult
@@ -212,7 +188,6 @@ BEGIN
         PassOrFail = @Status
     WHERE MasterID = @MasterID;
 END;
-GO
 
 -- Exams_WithDetails_GetAll
 CREATE OR ALTER PROCEDURE Exams_WithDetails_GetAll
@@ -231,7 +206,6 @@ BEGIN
     INNER JOIN SubjectMst subj ON subj.SubjectID = d.SubjectID
     ORDER BY d.MasterID, d.DtlsID;
 END;
-GO
 
 -- Exams_GetByMasterId (retrieve single master + details)
 CREATE OR ALTER PROCEDURE Exams_GetByMasterId
@@ -252,4 +226,5 @@ BEGIN
     WHERE d.MasterID = @MasterID
     ORDER BY d.DtlsID;
 END;
-GO
+
+
